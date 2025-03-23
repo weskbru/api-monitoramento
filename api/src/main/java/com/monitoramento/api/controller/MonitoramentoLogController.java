@@ -2,11 +2,12 @@ package com.monitoramento.api.controller;
 
 import com.monitoramento.api.model.MonitoramentoLog;
 import com.monitoramento.api.service.MonitoramentoLogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,13 +20,24 @@ public class MonitoramentoLogController {
     @Autowired
     private MonitoramentoLogService monitoramentoLogService;
 
+
+    // Configuração da documentação Swagger
+    @Operation(summary = "Criar um novo log de monitoramento")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Log criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos")
+    })
+    // Endpoint para criar um log
     @PostMapping("/salvar")
-    @ResponseStatus(HttpStatus.CREATED) // 201 Created quando o log for salvo
     public MonitoramentoLog salvar(@RequestBody MonitoramentoLog monitoramentoLog) {
-        // Salva o log diretamente e retorna o objeto salvo
         return monitoramentoLogService.salvarLog(monitoramentoLog);
     }
 
+    @Operation(summary = "Lista todos os logs de monitoramento")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de logs retornada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Nenhum log encontrado")
+    })
     @GetMapping("/logs")
     public List<MonitoramentoLog> listaTodos() {
         return monitoramentoLogService.listarTodos();
