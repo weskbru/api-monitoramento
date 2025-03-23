@@ -6,6 +6,7 @@ import com.monitoramento.api.repository.MonitoramentoLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.monitoramento.api.exceptions.RecursoNaoEncontradoException;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,8 +26,13 @@ public class MonitoramentoLogService {
         return monitoramentoLogRepository.findAll();
     }
 
-    public Optional<MonitoramentoLog> buscarPorId(Long id) {
-        return monitoramentoLogRepository.findById(id);
+    public MonitoramentoLog buscarPorId(Long id) {
+        Optional<MonitoramentoLog> log = monitoramentoLogRepository.findById(id);
+
+        if (log.isEmpty()) {
+            throw new RecursoNaoEncontradoException("Log com o ID " + id + " não encontrado");
+        }
+        return log.get();
     }
 
 }
