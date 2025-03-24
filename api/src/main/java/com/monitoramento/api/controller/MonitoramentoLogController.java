@@ -58,4 +58,21 @@ public class MonitoramentoLogController {
         return new ResponseEntity<>(log, HttpStatus.OK);
     }
 
+
+    @Operation(summary = "Deleta um log específico")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Log deletado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Log não encontrado")
+    })
+    @DeleteMapping("/logs/{id}")
+    public ResponseEntity<String> deletarLog(@PathVariable Long id){
+        try {
+            monitoramentoLogService.deletarPorId(id);
+            return  ResponseEntity.ok().build();
+        } catch (RecursoNaoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+
 }
