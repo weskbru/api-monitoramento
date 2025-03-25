@@ -35,4 +35,20 @@ public class MonitoramentoLogService {
         return log.get();
     }
 
+    public void deletarPorId(Long id){
+        Optional<MonitoramentoLog> log = monitoramentoLogRepository.findById(id);
+
+        if(log.isEmpty()){
+            throw new RecursoNaoEncontradoException("Log com o Id " + id + "não encontrado");
+        }
+
+        monitoramentoLogRepository.deleteById(id);
+
+    }
+
+    // Metodo para aplicar os filtros
+    public List<MonitoramentoLog> buscarDinamica(Integer statusHttp, String nomeServico) {
+        return monitoramentoLogRepository.findAll(MonitoramentoLogRepository.filtroDinamico(statusHttp, nomeServico));
+    }
+
 }
