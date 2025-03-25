@@ -46,4 +46,9 @@ public class MonitoramentoLogService {
 
     }
 
+    // Metodo para aplicar os filtros
+    public List<MonitoramentoLog> buscarDinamica(Integer statusHttp, String nomeServico) {
+        return monitoramentoLogRepository.findAll(MonitoramentoLogRepository.filtroDinamico(statusHttp, nomeServico));
+    }
+
 }
