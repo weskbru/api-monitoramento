@@ -1,13 +1,13 @@
 package com.monitoramento.api.controller;
 
-
+import com.monitoramento.api.dto.UsuarioLoginDTO;
 import com.monitoramento.api.service.AuthenticationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -16,15 +16,20 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String senha) {
+    @Operation(
+            summary = "Autenticação de Usuário",
+            description = "Endpoint para autenticar um usuário e retornar um token JWT válido.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Login bem-sucedido, retorna um token JWT"),
+                    @ApiResponse(responseCode = "400", description = "Erro de autenticação (usuário não encontrado ou senha inválida)")
+            }
+    )
+    public ResponseEntity<String> login(@RequestBody @Valid UsuarioLoginDTO loginDTO) {
         try {
-            // Chama o serviço de autenticação para gerar o token JWT
-            String token = authenticationService.autenticar(email, senha);
-            return ResponseEntity.ok(token);// Retorna o token no corpo da resposta
+            String token = authenticationService.autenticar(loginDTO);
+            return ResponseEntity.ok(token);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());// Retorna uma mensagem de erro caso falhe
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
-
-
