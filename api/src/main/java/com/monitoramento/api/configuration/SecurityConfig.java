@@ -17,7 +17,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Desabilitar CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Modo Stateless
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/cadastro").permitAll() // Endpoint público
+                        .requestMatchers("/auth/login", "/auth/cadastro").permitAll() // Endpoint público
                         .anyRequest().authenticated() // Qualquer outra requisição precisa de autenticação
                 );
         return http.build();

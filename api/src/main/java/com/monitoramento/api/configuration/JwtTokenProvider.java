@@ -4,13 +4,17 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+
+import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-    private final String SECRET_KEY = "secrect_key_exemplo";
+
+    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long EXPIRATION_TIME = 863_000_000L;
 
     // Gera o token JWT com regras de expiraçao
@@ -19,12 +23,12 @@ public class JwtTokenProvider {
                 .setSubject(email)  // Adiciona o email como a "identidade" do token
                 .setIssuedAt(new Date())  // Data em que o token foi criado
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))  // Define a data de expiração
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)  // Assina o token com uma chave secreta
+                .signWith(SECRET_KEY)  // Assina o token com uma chave secreta
                 .compact();  // Constrói o token
     }
 
 
-    // Valida o tokrn JWT
+    // Valida o token JWT
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJwt(token);
