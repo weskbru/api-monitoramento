@@ -4,14 +4,14 @@ import com.monitoramento.api.configuration.JwtTokenProvider;
 import com.monitoramento.api.dto.UsuarioCadastroDTO;
 import com.monitoramento.api.dto.UsuarioLoginDTO;
 import com.monitoramento.api.dto.UsuarioResponseDTO;
+import com.monitoramento.api.exceptions.CredenciaisInvalidasException;
+import com.monitoramento.api.exceptions.EmailJaCadastradoException;
 import com.monitoramento.api.model.Usuario;
 import com.monitoramento.api.repository.UsuarioRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,36 +21,46 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // Método para registrar o usuário
-    public UsuarioResponseDTO cadastrarUsuario(UsuarioCadastroDTO usuarioCadastroDTO) {
-        Usuario usuario = new Usuario();
-        usuario.setEmail(usuarioCadastroDTO.getEmail());
-        usuario.setSenha(passwordEncoder.encode(usuarioCadastroDTO.getSenha())); // Criptografando a senha
-        usuario.setRole(usuarioCadastroDTO.getRole());
+    // ========== CADASTRO ==========
+    @Transactional
+    public UsuarioResponseDTO cadastrarUsuario(UsuarioCadastroDTO dto) {
+        String emailNormalizado = dto.getEmail().toLowerCase().trim();
+
+        if (usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)) {
+            throw new EmailJaCadastradoException("Erro no processamento do cadastro");
+        }
+
+        Usuario usuario = Usuario.builder()
+                .nome(dto.getNome().trim())
+                .email(emailNormalizado)
+                .senha(passwordEncoder.encode(dto.getSenha()))
+                .role(dto.getRole())
+                .build();
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
-
-        return new UsuarioResponseDTO(usuarioSalvo.getId(), usuarioSalvo.getEmail(), usuarioSalvo.getRole().name());
+        return toResponseDTO(usuarioSalvo);
     }
 
-    // Metodo para autenticar o usuário e gerar o token
+    // ========== LOGIN ==========
     public String autenticar(UsuarioLoginDTO loginDTO) {
-        // Verifica se o usuário existe no banco
-        Optional<Usuario> usuarioOptional = usuarioRepository.findByEmail(loginDTO.getEmail());
-        if (usuarioOptional.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado");
-        }
+        String emailNormalizado = loginDTO.getEmail().toLowerCase().trim();
+        Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
+                .orElseThrow(() -> new CredenciaisInvalidasException("Credenciais inválidas"));
 
-        Usuario usuario = usuarioOptional.get();
-
-        // Verifica se a senha está correta
         if (!passwordEncoder.matches(loginDTO.getSenha(), usuario.getSenha())) {
-            throw new RuntimeException("Senha inválida");
+            throw new CredenciaisInvalidasException("Credenciais inválidas");
         }
 
-        // Se a autenticação for bem-sucedida, gera o token
         return jwtTokenProvider.generateToken(usuario.getEmail());
     }
 
-
+    // Metodo auxiliar
+    private UsuarioResponseDTO toResponseDTO(Usuario usuario) {
+        return UsuarioResponseDTO.builder()
+                .id(usuario.getId())
+                .nome(usuario.getNome())
+                .email(usuario.getEmail())
+                .role(usuario.getRole().name())
+                .build();
+    }
 }
